@@ -6,8 +6,6 @@ Created on 2013. 4. 3.
 @author: eM <whoknowwhat0623@gmail.com>
 '''
 
-import win32api
-import win32con
 import win32gui
 
 from PIL import Image
@@ -21,9 +19,9 @@ import time
 import ctypes
 
 DELAY = 0.5
-NPCX, NPCY = 500, 500
-ITEMX, ITEMY = 1000, 100
-TABX, TABY = 800, 200
+NPCX, NPCY = 1000, 500
+ITEMX, ITEMY = 1550, 120
+TABX, TABY = 1640, 95
 
     
 class InputMgr():
@@ -32,10 +30,12 @@ class InputMgr():
         self._ahk.ahktextdll(u"")
     
     def click(self, x, y):
-        win32api.SetCursorPos((x, y))
+        self._ahk.ahkExec(u"MouseMove, %d, %d" % (x, y))
         time.sleep(0.1)
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0)
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y, 0, 0)
+        self._ahk.ahkExec(u"MouseClick, left, %d, %d" % (x, y))
+    
+    def move(self, x, y):
+        self._ahk.ahkExec(u"MouseMove, %d, %d" % (x, y))
         
     def sendKey(self, key):
         self._ahk.ahkExec(u"Send, " + key)
@@ -131,17 +131,21 @@ class CheckStatusState(State):
         time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
         time.sleep(DELAY)
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
-            
+        
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("End.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
@@ -150,23 +154,27 @@ class CheckStatusState(State):
             time.sleep(DELAY)
             
         x, y = self._ims.search("Chk.PNG")
-        if (x, y) is not (-1, -1):
-            self._inp.sendKey("/")
+        if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("CheckInventoryState"))
-            time.sleep(DELAY * 2)
-        
+            
+        self._inp.sendKey("/")
+        time.sleep(DELAY * 2)
+
 
 class CheckInventoryState(State):
     def handle(self):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("/")
+        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
         time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
+        time.sleep(DELAY)
+        self._inp.move(0, 0)
         time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
@@ -174,17 +182,20 @@ class CheckInventoryState(State):
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
         else:
+            self._inp.sendKey("/")
+            time.sleep(DELAY * 2)
             return
 
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("Food.PNG")
-        if (x, y) is not (-1, -1):
-            self._inp.sendKey("/")
+        if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("FeedState"))
-            time.sleep(DELAY * 2)
         else:
-            self._inp.sendKey("/")
             self._context.setState(self._context.getState("BuyState"))
-            time.sleep(DELAY * 2)
+        
+        self._inp.sendKey("/")
+        time.sleep(DELAY * 2)
 
 
 class FeedState(State):
@@ -192,27 +203,39 @@ class FeedState(State):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("/")
+        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
         time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
+        time.sleep(DELAY)
+        self._inp.move(0, 0)
         time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
+            self._inp.sendKey("{SPACE}")
+            time.sleep(DELAY)
+            self._inp.sendKey("{SPACE}")
+            time.sleep(DELAY)
 
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("Food.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
+            self._inp.click(x + 10, y + 50)
+            self._inp.click(x + 10, y + 50)
             self._inp.click(x + 10, y + 50)
             time.sleep(DELAY * 4)
-            self._inp.click(x + 100, y + 200)
+            self._inp.click(x + 100, y + 180)
             time.sleep(DELAY * 4)
-            self._inp.sendKey("/")
             self._context.setState(self._context.getState("CheckStatusState"))
-            time.sleep(DELAY * 2)
+            
+        self._inp.sendKey("/")
+        time.sleep(DELAY * 2)
 
 
 class BuyState(State):
@@ -221,32 +244,45 @@ class BuyState(State):
         time.sleep(DELAY * 2)
         self._inp.sendKey("{Ctrl Down}")
         time.sleep(DELAY)
-        self._inp.click(500, 500)
+        self._inp.click(NPCX, NPCY)
         time.sleep(DELAY)
         self._inp.sendKey("{Ctrl Up}")
+        time.sleep(DELAY)
+        self._inp.sendKey("{SPACE}")
+        time.sleep(DELAY)
+        self._inp.sendKey("{SPACE}")
+        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
         time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
         time.sleep(DELAY)
         
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("Buy.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
             time.sleep(DELAY)
-            self._inp.click(1000, 100)
+            self._inp.click(TABX, TABY)
             time.sleep(DELAY)
             self._inp.sendKey("{Ctrl Down}")
             time.sleep(DELAY)
-            self._inp.click(800, 200)
+            self._inp.click(ITEMX, ITEMY)
             time.sleep(DELAY)
             self._inp.sendKey("{Ctrl Up}")
+        else:
+            self._inp.sendKey("/")
+            time.sleep(DELAY * 2)
+            return
         
+        self._inp.move(0, 0)
+        time.sleep(DELAY)
         x, y = self._ims.search("End.PNG")
-        if (x, y) is not (-1, -1):
+        if (x, y) != (-1, -1):
             self._inp.click(x, y)
             time.sleep(DELAY)
             self._context.setState(self._context.getState("FeedState"))
