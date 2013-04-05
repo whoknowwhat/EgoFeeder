@@ -49,20 +49,20 @@ class Input(ctypes.Structure):
 # Actuals Functions
 
 
-def PressKey(hexKeyCode):
+def PressKey(hwnd, hexKeyCode):
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
     ii_.ki = KeyBdInput(hexKeyCode, 0x48, 0, 0, ctypes.pointer(extra))
     x = Input(ctypes.c_ulong(1), ii_)
-    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+    ctypes.windll.user32.SendInput(hwnd, ctypes.pointer(x), ctypes.sizeof(x))
 
 
-def ReleaseKey(hexKeyCode):
+def ReleaseKey(hwnd, hexKeyCode):
     extra = ctypes.c_ulong(0)
     ii_ = Input_I()
     ii_.ki = KeyBdInput(hexKeyCode, 0x48, 0x0002, 0, ctypes.pointer(extra))
     x = Input(ctypes.c_ulong(1), ii_)
-    ctypes.windll.user32.SendInput(1, ctypes.pointer(x), ctypes.sizeof(x))
+    ctypes.windll.user32.SendInput(hwnd, ctypes.pointer(x), ctypes.sizeof(x))
 
 
 if __name__ == "__main__":
