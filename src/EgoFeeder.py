@@ -17,28 +17,33 @@ from cv2 import cv
 import numpy
 import time
 import ctypes
+import ConfigParser
 
 DELAY = 0.5
 NPCX, NPCY = 1000, 500
 ITEMX, ITEMY = 1550, 120
 TABX, TABY = 1640, 95
 
-    
+
 class InputMgr():
     def __init__(self):
         self._ahk = ctypes.cdll.AutoHotkey
         self._ahk.ahktextdll(u"")
-    
+
     def click(self, x, y):
         self._ahk.ahkExec(u"MouseMove, %d, %d" % (x, y))
         time.sleep(0.1)
         self._ahk.ahkExec(u"MouseClick, left, %d, %d" % (x, y))
-    
+        time.sleep(DELAY)
+
     def move(self, x, y):
         self._ahk.ahkExec(u"MouseMove, %d, %d" % (x, y))
-        
+        time.sleep(DELAY)
+
     def sendKey(self, key):
         self._ahk.ahkExec(u"Send, " + key)
+        time.sleep(DELAY)
+
 
 class WindowMgr():
     """Encapsulates some calls to the winapi for window management"""
@@ -70,21 +75,21 @@ class ImageSearch():
 
     def _getSnapshot(self):
         return ImageGrab.grab()
- 
+
     def _matchTemplate(self, target, template):
         method = cv.CV_TM_SQDIFF_NORMED
         result = cv2.matchTemplate(template, target, method)
-    
+
         minVal, _, minLoc, _ = cv2.minMaxLoc(result)
-        
+
         if minVal < self._THRESHOLD:
             return minLoc
         else:
             return (-1, -1)
-    
+
     def _PIL2CV(self, img):
         return numpy.array(img.convert('RGB'))
-    
+
     def search(self, template):
         tim = Image.open(template)
         return self._matchTemplate(self._PIL2CV(self._getSnapshot()), self._PIL2CV(tim))
@@ -99,15 +104,15 @@ class EgoFeeder(object):
             "BuyState": BuyState(self)
         }
         self._state = self.getState("CheckStatusState")
-        
+
     def setState(self, state):
         if state is not None:
             self._state = state
-        
+
     def getState(self, state_name):
         if state_name in self._state_pool:
             return self._state_pool[state_name]
-    
+
     def run(self):
         while True:
             self._state.handle()
@@ -121,42 +126,32 @@ class State(object):
         self._wm = WindowMgr()
         self._wm.find_window(u"마비노기")
 
+
 class CheckStatusState(State):
     def handle(self):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("/")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
-        
+
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("End.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
-            
+
         x, y = self._ims.search("Chk.PNG")
         if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("CheckInventoryState"))
-            
+
         self._inp.sendKey("/")
         time.sleep(DELAY * 2)
 
@@ -166,34 +161,26 @@ class CheckInventoryState(State):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("/")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
         else:
             self._inp.sendKey("/")
             time.sleep(DELAY * 2)
             return
 
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Food.PNG")
         if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("FeedState"))
         else:
             self._context.setState(self._context.getState("BuyState"))
-        
+
         self._inp.sendKey("/")
         time.sleep(DELAY * 2)
 
@@ -203,37 +190,24 @@ class FeedState(State):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("/")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Feed.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
 
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Food.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x + 10, y + 50)
-            self._inp.click(x + 10, y + 50)
-            self._inp.click(x + 10, y + 50)
-            time.sleep(DELAY * 4)
             self._inp.click(x + 100, y + 180)
-            time.sleep(DELAY * 4)
             self._context.setState(self._context.getState("CheckStatusState"))
-            
+
         self._inp.sendKey("/")
         time.sleep(DELAY * 2)
 
@@ -243,53 +217,42 @@ class BuyState(State):
         self._wm.set_foreground()
         time.sleep(DELAY * 2)
         self._inp.sendKey("{Ctrl Down}")
-        time.sleep(DELAY)
         self._inp.click(NPCX, NPCY)
-        time.sleep(DELAY)
         self._inp.sendKey("{Ctrl Up}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
         self._inp.sendKey("{SPACE}")
-        time.sleep(DELAY)
-        
+
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("Buy.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.sendKey("{SPACE}")
-            time.sleep(DELAY)
             self._inp.click(TABX, TABY)
-            time.sleep(DELAY)
             self._inp.sendKey("{Ctrl Down}")
-            time.sleep(DELAY)
             self._inp.click(ITEMX, ITEMY)
-            time.sleep(DELAY)
             self._inp.sendKey("{Ctrl Up}")
         else:
-            self._inp.sendKey("/")
-            time.sleep(DELAY * 2)
             return
-        
+
         self._inp.move(0, 0)
-        time.sleep(DELAY)
         x, y = self._ims.search("End.PNG")
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
-            time.sleep(DELAY)
             self._context.setState(self._context.getState("FeedState"))
             time.sleep(DELAY * 2)
 
 
 def main():
+    config = ConfigParser.ConfigParser()
+    config.read("config.ini")
+    TABX, TABY = [int(n) for n in config.get("Location", "itemtab").split(',')]
+    ITEMX, ITEMY = [int(n) for n in config.get("Location", "item").split(',')]
+    NPCX, NPCY = [int(n) for n in config.get("Location", "npc").split(',')]
+    DELAY = float(config.get("Etc", "delay"))
+
     feeder = EgoFeeder()
     feeder.run()
 
