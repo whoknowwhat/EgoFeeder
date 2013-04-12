@@ -24,6 +24,12 @@ NPCX, NPCY = 1000, 500
 ITEMX, ITEMY = 1550, 120
 TABX, TABY = 1640, 95
 
+CHK_IMAGE = "img/Chk.PNG"
+FOOD_IMAGE = "img/Food.PNG"
+FEED_IMAGE = "img/Feed.PNG"
+END_IMAGE = "img/End.PNG"
+BUY_IMAGE = "img/Buy.PNG"
+
 
 class InputMgr():
     def __init__(self):
@@ -135,20 +141,20 @@ class CheckStatusState(State):
         self._inp.sendKey("{SPACE}")
         self._inp.sendKey("{SPACE}")
         self._inp.move(0, 0)
-        x, y = self._ims.search("Feed.PNG")
+        x, y = self._ims.search(FEED_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
             self._inp.sendKey("{SPACE}")
 
         self._inp.move(0, 0)
-        x, y = self._ims.search("End.PNG")
+        x, y = self._ims.search(END_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
             self._inp.sendKey("{SPACE}")
 
-        x, y = self._ims.search("Chk.PNG")
+        x, y = self._ims.search(CHK_IMAGE)
         if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("CheckInventoryState"))
 
@@ -164,7 +170,7 @@ class CheckInventoryState(State):
         self._inp.sendKey("{SPACE}")
         self._inp.sendKey("{SPACE}")
         self._inp.move(0, 0)
-        x, y = self._ims.search("Feed.PNG")
+        x, y = self._ims.search(FEED_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
@@ -175,7 +181,7 @@ class CheckInventoryState(State):
             return
 
         self._inp.move(0, 0)
-        x, y = self._ims.search("Food.PNG")
+        x, y = self._ims.search(FOOD_IMAGE)
         if (x, y) != (-1, -1):
             self._context.setState(self._context.getState("FeedState"))
         else:
@@ -193,7 +199,7 @@ class FeedState(State):
         self._inp.sendKey("{SPACE}")
         self._inp.sendKey("{SPACE}")
         self._inp.move(0, 0)
-        x, y = self._ims.search("Feed.PNG")
+        x, y = self._ims.search(FEED_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
@@ -202,7 +208,7 @@ class FeedState(State):
             self._inp.sendKey("{SPACE}")
 
         self._inp.move(0, 0)
-        x, y = self._ims.search("Food.PNG")
+        x, y = self._ims.search(FOOD_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x + 10, y + 50)
             self._inp.click(x + 100, y + 180)
@@ -225,7 +231,7 @@ class BuyState(State):
         self._inp.sendKey("{SPACE}")
 
         self._inp.move(0, 0)
-        x, y = self._ims.search("Buy.PNG")
+        x, y = self._ims.search(BUY_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._inp.sendKey("{SPACE}")
@@ -238,7 +244,7 @@ class BuyState(State):
             return
 
         self._inp.move(0, 0)
-        x, y = self._ims.search("End.PNG")
+        x, y = self._ims.search(END_IMAGE)
         if (x, y) != (-1, -1):
             self._inp.click(x, y)
             self._context.setState(self._context.getState("FeedState"))
