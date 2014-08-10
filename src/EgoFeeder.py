@@ -130,7 +130,6 @@ class EgoFeeder(object):
 
 
 class State(object):
-
     def __init__(self, context):
         self._context = context
         self._ims = ImageSearch()
@@ -263,6 +262,7 @@ class BuyState(State):
 
 
 def main():
+    global TABX, TABY, ITEMX, ITEMY, NPCX, NPCY, DELAY
     config = ConfigParser.ConfigParser()
     config.read("config.ini")
     TABX, TABY = [int(n) for n in config.get("Location", "itemtab").split(',')]
